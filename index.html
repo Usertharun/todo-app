@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do App</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #clearBtn {
+            background-color: #f44336;
+        }
+
+        ul {
+            margin-top: 20px;
+            padding: 0;
+        }
+
+        li {
+            background: white;
+            margin: 10px auto;
+            padding: 10px;
+            width: 300px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        li button {
+            background-color: red;
+        }
+
+        #emptyMsg {
+            margin-top: 20px;
+            color: gray;
+        }
+
+        #taskCount {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>My To-Do List</h1>
+
+    <input type="text" id="taskInput" placeholder="Enter a task">
+    <button onclick="addTask()">Add</button>
+    <button id="clearBtn" onclick="clearAll()">Clear All</button>
+
+    <p id="taskCount"></p>
+    <p id="emptyMsg">No tasks yet 🚀</p>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        window.onload = function () {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            tasks.forEach(task => addTaskToDOM(task));
+
+            updateTaskCount();
+            toggleEmptyMessage();
+        };
+
+        function addTask() {
+            const input = document.getElementById("taskInput");
+            const task = input.value.trim();
+
+            if (!task) return;
+
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            const exists = tasks.some(
+                t => t.text.toLowerCase() === task.toLowerCase()
+            );
+
+            if (exists) {
+                alert("Task already exists!");
+                input.value = "";
+                return;
+            }
+
+            const taskObj = {
+                id: Date.now(),
+                text: task
+            };
+
+            addTaskToDOM(taskObj);
+
+            tasks.push(taskObj);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+
+            input.value = "";
+
+            updateTaskCount();
+            toggleEmptyMessage();
+        }
+
+        function addTaskToDOM(taskObj) {
+            let li = document.createElement("li");
+
+            let span = document.createElement("span");
+            span.innerText = taskObj.text;
+
+            let delBtn = document.createElement("button");
+            delBtn.innerText = "❌";
+
+            delBtn.onclick = function () {
+                li.remove();
+                removeTask(taskObj.id);
+            };
+
+            li.appendChild(span);
+            li.appendChild(delBtn);
+
+            span.onclick = function () {
+                span.style.textDecoration =
+                    span.style.textDecoration === "line-through"
+                        ? "none"
+                        : "line-through";
+            };
+
+            document.getElementById("taskList").appendChild(li);
+        }
+
+        function removeTask(id) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            tasks = tasks.filter(task => task.id !== id);
+
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+
+            updateTaskCount();
+            toggleEmptyMessage();
+        }
+
+        function clearAll() {
+            localStorage.removeItem("tasks");
+            document.getElementById("taskList").innerHTML = "";
+
+            updateTaskCount();
+            toggleEmptyMessage();
+        }
+
+        function updateTaskCount() {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            document.getElementById("taskCount").innerText =
+                "Total Tasks: " + tasks.length;
+        }
+
+        function toggleEmptyMessage() {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            document.getElementById("emptyMsg").style.display =
+                tasks.length === 0 ? "block" : "none";
+        }
+
+        document.getElementById("taskInput").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                addTask();
+            }
+        });
+    </script>
+
+</body>
+</html>
