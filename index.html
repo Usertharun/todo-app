@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Advanced To-Do App</title>
+    <title>Premium To-Do App</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6f8;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
             text-align: center;
             margin-top: 60px;
             transition: 0.3s;
@@ -19,22 +20,24 @@
         input {
             padding: 10px;
             width: 250px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
         }
 
         button {
             padding: 10px 15px;
             margin: 5px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             background-color: #4CAF50;
             color: white;
             cursor: pointer;
+            transition: 0.2s;
         }
 
         button:hover {
-            background-color: #45a049;
+            transform: scale(1.05);
         }
 
         #clearBtn {
@@ -47,24 +50,20 @@
         }
 
         li {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             margin: 10px auto;
-            padding: 10px;
+            padding: 12px;
             width: 320px;
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         li button {
             background-color: red;
-        }
-
-        #emptyMsg {
-            margin-top: 20px;
-            color: gray;
         }
 
         #stats {
@@ -72,10 +71,14 @@
             font-weight: bold;
         }
 
+        #emptyMsg {
+            margin-top: 20px;
+            color: #ddd;
+        }
+
         /* Dark Mode */
         .dark {
             background: #121212;
-            color: white;
         }
 
         .dark li {
