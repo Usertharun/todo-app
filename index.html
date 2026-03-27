@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>To-Do App</title>
+    <title>Advanced To-Do App</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #f4f6f8;
             text-align: center;
-            margin-top: 80px;
+            margin-top: 60px;
+            transition: 0.3s;
         }
 
         h1 {
@@ -49,7 +50,7 @@
             background: white;
             margin: 10px auto;
             padding: 10px;
-            width: 300px;
+            width: 320px;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
@@ -66,9 +67,36 @@
             color: gray;
         }
 
-        #taskCount {
+        #stats {
             margin-top: 10px;
             font-weight: bold;
+        }
+
+        /* Dark Mode */
+        .dark {
+            background: #121212;
+            color: white;
+        }
+
+        .dark li {
+            background: #1e1e1e;
+        }
+
+        .dark input {
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #555;
+        }
+
+        /* Mobile */
+        @media (max-width: 500px) {
+            li {
+                width: 90%;
+            }
+
+            input {
+                width: 80%;
+            }
         }
     </style>
 </head>
@@ -80,33 +108,77 @@
     <input type="text" id="taskInput" placeholder="Enter a task">
     <button onclick="addTask()">Add</button>
     <button id="clearBtn" onclick="clearAll()">Clear All</button>
+    <button onclick="toggleDarkMode()">🌙</button>
 
-    <p id="taskCount"></p>
+    <div>
+        <button onclick="filterTasks('all')">All</button>
+        <button onclick="filterTasks('completed')">Completed</button>
+        <button onclick="filterTasks('pending')">Pending</button>
+    </div>
+
+    <p id="stats"></p>
     <p id="emptyMsg">No tasks yet 🚀</p>
 
     <ul id="taskList"></ul>
 
     <script>
+        let tasks = [];
+
         window.onload = function () {
-            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-            tasks.forEach(task => addTaskToDOM(task));
-
-            updateTaskCount();
-            toggleEmptyMessage();
+            tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            renderTasks(tasks);
         };
 
+        function saveTasks() {
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function renderTasks(filteredTasks) {
+            let list = document.getElementById("taskList");
+            list.innerHTML = "";
+
+            filteredTasks.forEach(task => {
+                let li = document.createElement("li");
+
+                let span = document.createElement("span");
+                span.innerText = task.text;
+
+                if (task.completed) {
+                    span.style.textDecoration = "line-through";
+                }
+
+                span.onclick = function () {
+                    task.completed = !task.completed;
+                    saveTasks();
+                    renderTasks(tasks);
+                };
+
+                let delBtn = document.createElement("button");
+                delBtn.innerText = "❌";
+
+                delBtn.onclick = function () {
+                    tasks = tasks.filter(t => t.id !== task.id);
+                    saveTasks();
+                    renderTasks(tasks);
+                };
+
+                li.appendChild(span);
+                li.appendChild(delBtn);
+
+                list.appendChild(li);
+            });
+
+            updateStats();
+            toggleEmptyMessage();
+        }
+
         function addTask() {
-            const input = document.getElementById("taskInput");
-            const task = input.value.trim();
+            let input = document.getElementById("taskInput");
+            let text = input.value.trim();
 
-            if (!task) return;
+            if (!text) return;
 
-            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-            const exists = tasks.some(
-                t => t.text.toLowerCase() === task.toLowerCase()
-            );
+            let exists = tasks.some(t => t.text.toLowerCase() === text.toLowerCase());
 
             if (exists) {
                 alert("Task already exists!");
@@ -114,80 +186,49 @@
                 return;
             }
 
-            const taskObj = {
+            let newTask = {
                 id: Date.now(),
-                text: task
+                text: text,
+                completed: false
             };
 
-            addTaskToDOM(taskObj);
-
-            tasks.push(taskObj);
-            localStorage.setItem("tasks", JSON.stringify(tasks));
+            tasks.push(newTask);
+            saveTasks();
+            renderTasks(tasks);
 
             input.value = "";
-
-            updateTaskCount();
-            toggleEmptyMessage();
-        }
-
-        function addTaskToDOM(taskObj) {
-            let li = document.createElement("li");
-
-            let span = document.createElement("span");
-            span.innerText = taskObj.text;
-
-            let delBtn = document.createElement("button");
-            delBtn.innerText = "❌";
-
-            delBtn.onclick = function () {
-                li.remove();
-                removeTask(taskObj.id);
-            };
-
-            li.appendChild(span);
-            li.appendChild(delBtn);
-
-            span.onclick = function () {
-                span.style.textDecoration =
-                    span.style.textDecoration === "line-through"
-                        ? "none"
-                        : "line-through";
-            };
-
-            document.getElementById("taskList").appendChild(li);
-        }
-
-        function removeTask(id) {
-            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-            tasks = tasks.filter(task => task.id !== id);
-
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-
-            updateTaskCount();
-            toggleEmptyMessage();
         }
 
         function clearAll() {
-            localStorage.removeItem("tasks");
-            document.getElementById("taskList").innerHTML = "";
-
-            updateTaskCount();
-            toggleEmptyMessage();
+            tasks = [];
+            saveTasks();
+            renderTasks(tasks);
         }
 
-        function updateTaskCount() {
-            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        function updateStats() {
+            let completed = tasks.filter(t => t.completed).length;
 
-            document.getElementById("taskCount").innerText =
-                "Total Tasks: " + tasks.length;
+            document.getElementById("stats").innerText =
+                `Total: ${tasks.length} | Completed: ${completed}`;
         }
 
         function toggleEmptyMessage() {
-            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
             document.getElementById("emptyMsg").style.display =
                 tasks.length === 0 ? "block" : "none";
+        }
+
+        function filterTasks(type) {
+            if (type === "all") {
+                renderTasks(tasks);
+            } else if (type === "completed") {
+                renderTasks(tasks.filter(t => t.completed));
+            } else {
+                renderTasks(tasks.filter(t => !t.completed));
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
         }
 
         document.getElementById("taskInput").addEventListener("keypress", function (e) {
